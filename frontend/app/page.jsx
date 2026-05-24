@@ -1,5 +1,6 @@
+'use client';
+
 import { useState, useEffect, useCallback } from 'react';
-import './App.css';
 
 const DEFAULT_BASE = 'USD';
 const DEFAULT_TARGETS = ['EUR', 'GBP', 'JPY', 'INR', 'CAD', 'AUD', 'CHF'];
@@ -7,14 +8,8 @@ const SUPPORTED_BASES = ['USD', 'EUR', 'GBP', 'JPY', 'INR', 'CAD', 'AUD'];
 const POLL_INTERVAL_MS = 30_000;
 
 const CURRENCY_NAMES = {
-  USD: 'US Dollar',
-  EUR: 'Euro',
-  GBP: 'British Pound',
-  JPY: 'Japanese Yen',
-  INR: 'Indian Rupee',
-  CAD: 'Canadian Dollar',
-  AUD: 'Australian Dollar',
-  CHF: 'Swiss Franc',
+  USD: 'US Dollar', EUR: 'Euro', GBP: 'British Pound', JPY: 'Japanese Yen',
+  INR: 'Indian Rupee', CAD: 'Canadian Dollar', AUD: 'Australian Dollar', CHF: 'Swiss Franc',
 };
 
 const CURRENCY_FLAGS = {
@@ -24,7 +19,7 @@ const CURRENCY_FLAGS = {
 
 function freshnessConfig(label) {
   switch (label) {
-    case 'fresh':          return { cls: 'fresh',         dot: '●', text: 'Live' };
+    case 'fresh':          return { cls: 'fresh',          dot: '●', text: 'Live' };
     case 'slightly_stale': return { cls: 'slightly-stale', dot: '●', text: 'Slightly stale' };
     case 'stale':          return { cls: 'stale',          dot: '●', text: 'Stale' };
     default:               return { cls: 'unknown',        dot: '○', text: 'Unknown' };
@@ -63,11 +58,10 @@ function RateCard({ currency, rate, base }) {
 function StatusBar({ data }) {
   if (!data) return null;
   const fc = freshnessConfig(data.freshness);
-  const sourceLabel = data.source === 'exchangerate-api'
-    ? 'ExchangeRate-API'
-    : data.source === 'frankfurter'
-    ? 'Frankfurter (ECB)'
-    : data.source;
+  const sourceLabel =
+    data.source === 'exchangerate-api' ? 'ExchangeRate-API' :
+    data.source === 'frankfurter' ? 'Frankfurter (ECB)' :
+    data.source;
 
   return (
     <div className={`status-bar ${fc.cls}`}>
@@ -89,11 +83,7 @@ function StatusBar({ data }) {
 
 function WarningBanner({ message }) {
   if (!message) return null;
-  return (
-    <div className="warning-banner">
-      <span>⚠</span> {message}
-    </div>
-  );
+  return <div className="warning-banner"><span>⚠</span> {message}</div>;
 }
 
 function ErrorState({ onRetry }) {
@@ -107,17 +97,15 @@ function ErrorState({ onRetry }) {
   );
 }
 
-export default function App() {
+export default function Page() {
   const [base, setBase] = useState(DEFAULT_BASE);
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [lastFetchAttempt, setLastFetchAttempt] = useState(null);
 
   const fetchRates = useCallback(async () => {
     setError(null);
-    setLoading((prev) => prev || true);
-    setLastFetchAttempt(new Date());
+    setLoading(true);
     try {
       const targets = DEFAULT_TARGETS.filter((t) => t !== base).join(',');
       const res = await fetch(`/api/rates?base=${base}&targets=${targets}`);
@@ -139,10 +127,6 @@ export default function App() {
     return () => clearInterval(interval);
   }, [fetchRates]);
 
-  const handleBaseChange = (e) => {
-    setBase(e.target.value);
-  };
-
   const rates = data?.rates ? Object.entries(data.rates) : [];
 
   return (
@@ -158,7 +142,7 @@ export default function App() {
           </div>
           <div className="controls">
             <label htmlFor="base-select">Base currency</label>
-            <select id="base-select" value={base} onChange={handleBaseChange}>
+            <select id="base-select" value={base} onChange={(e) => setBase(e.target.value)}>
               {SUPPORTED_BASES.map((c) => (
                 <option key={c} value={c}>
                   {CURRENCY_FLAGS[c]} {c} — {CURRENCY_NAMES[c]}
@@ -171,7 +155,6 @@ export default function App() {
 
       <main className="main-content">
         {data?.warning && <WarningBanner message={data.warning} />}
-
         <StatusBar data={data} />
 
         {loading && !data && (
@@ -191,16 +174,11 @@ export default function App() {
           </div>
         )}
 
-        {loading && data && (
-          <div className="refresh-indicator">Refreshing…</div>
-        )}
+        {loading && data && <div className="refresh-indicator">Refreshing…</div>}
       </main>
 
       <footer className="app-footer">
-        <p>
-          Rates auto-refresh every 30s · Free-tier public APIs ·
-          Not financial advice
-        </p>
+        <p>Rates auto-refresh every 30s · Free-tier public APIs · Not financial advice</p>
       </footer>
     </div>
   );

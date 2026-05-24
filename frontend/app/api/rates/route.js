@@ -1,17 +1,6 @@
-import express from 'express';
-import cors from 'cors';
+const CACHE_TTL_MS = 60_000;
+const cache = new Map();
 
-const app = express();
-const PORT = 3001;
-
-app.use(cors());
-app.use(express.json());
-
-// ─── In-memory cache ────────────────────────────────────────────────────────
-const CACHE_TTL_MS = 60_000; // 60 seconds
-const cache = new Map(); // key: base currency → { data, fetchedAt }
-
-// ─── API definitions ────────────────────────────────────────────────────────
 const APIS = [
   {
     name: 'exchangerate-api',
@@ -22,7 +11,7 @@ const APIS = [
       );
       if (!res.ok) throw new Error(`exchangerate-api HTTP ${res.status}`);
       const json = await res.json();
-      return json.rates; // { EUR: 0.91, GBP: 0.79, ... }
+      return json.rates;
     },
   },
   {
@@ -39,7 +28,6 @@ const APIS = [
   },
 ];
 
-// ─── Helpers ────────────────────────────────────────────────────────────────
 async function fetchWithTimeout(url, ms) {
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), ms);
@@ -56,7 +44,6 @@ function freshnessLabel(seconds) {
   return 'stale';
 }
 
-// ─── Core rate-fetching logic ────────────────────────────────────────────────
 async function getRates(base) {
   const cacheKey = base.toUpperCase();
   const cached = cache.get(cacheKey);
@@ -72,7 +59,6 @@ async function getRates(base) {
     };
   }
 
-  // Try each API in order; first success wins
   let lastError;
   for (const api of APIS) {
     try {
@@ -96,7 +82,6 @@ async function getRates(base) {
     }
   }
 
-  // All APIs failed — return stale cache if available
   if (cached) {
     const freshnessSeconds = Math.floor((now - cached.fetchedAt) / 1000);
     return {
@@ -111,26 +96,21 @@ async function getRates(base) {
   throw new Error(`All APIs failed: ${lastError?.message}`);
 }
 
-// ─── Route ───────────────────────────────────────────────────────────────────
-/**
- * GET /api/rates?base=USD&targets=EUR,GBP,JPY,INR,CAD
- * Returns normalized rate object with metadata.
- */
-app.get('/api/rates', async (req, res) => {
-  const base = (req.query.base || 'USD').toUpperCase();
-  const targets = req.query.targets
-    ? req.query.targets.toUpperCase().split(',').map((t) => t.trim())
+export async function GET(request) {
+  const { searchParams } = new URL(request.url);
+  const base = (searchParams.get('base') || 'USD').toUpperCase();
+  const targetsParam = searchParams.get('targets');
+  const targets = targetsParam
+    ? targetsParam.toUpperCase().split(',').map((t) => t.trim())
     : ['EUR', 'GBP', 'JPY', 'INR', 'CAD'];
 
-  // Basic validation
   if (!/^[A-Z]{3}$/.test(base)) {
-    return res.status(400).json({ error: 'Invalid base currency code.' });
+    return Response.json({ error: 'Invalid base currency code.' }, { status: 400 });
   }
 
   try {
     const result = await getRates(base);
 
-    // Filter to requested targets only
     const filteredRates = {};
     for (const t of targets) {
       if (result.rates[t] !== undefined) {
@@ -138,7 +118,7 @@ app.get('/api/rates', async (req, res) => {
       }
     }
 
-    return res.json({
+    return Response.json({
       base: result.base,
       rates: filteredRates,
       source: result.source,
@@ -150,15 +130,12 @@ app.get('/api/rates', async (req, res) => {
     });
   } catch (err) {
     console.error('[/api/rates] Error:', err.message);
-    return res.status(503).json({
-      error: 'Unable to fetch exchange rates. Please try again shortly.',
-      details: err.message,
-    });
+    return Response.json(
+      {
+        error: 'Unable to fetch exchange rates. Please try again shortly.',
+        details: err.message,
+      },
+      { status: 503 }
+    );
   }
-});
-
-app.get('/health', (_req, res) => res.json({ status: 'ok' }));
-
-app.listen(PORT, () => {
-  console.log(`Forex backend running on http://localhost:${PORT}`);
-});
+}

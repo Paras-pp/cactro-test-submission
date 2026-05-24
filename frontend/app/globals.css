@@ -25,6 +25,7 @@ body {
   font-size: 15px;
   line-height: 1.5;
   min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
 }
 
 /* ─── Layout ────────────────────────────────────────────────────────────── */
@@ -121,23 +122,17 @@ select:focus { border-color: var(--accent); }
   flex-wrap: wrap;
 }
 
-.freshness-dot {
-  font-size: 10px;
-  line-height: 1;
-}
+.freshness-dot { font-size: 10px; line-height: 1; }
 
-.status-bar.fresh .freshness-dot         { color: var(--fresh); }
+.status-bar.fresh .freshness-dot          { color: var(--fresh); }
 .status-bar.slightly-stale .freshness-dot { color: var(--stale); }
 .status-bar.stale .freshness-dot          { color: var(--stale-hard); }
 
-.freshness-label {
-  font-weight: 600;
-  font-size: 13px;
-}
+.freshness-label { font-weight: 600; font-size: 13px; }
 
 .status-bar.fresh .freshness-label          { color: var(--fresh); }
-.status-bar.slightly-stale .freshness-label  { color: var(--stale); }
-.status-bar.stale .freshness-label           { color: var(--stale-hard); }
+.status-bar.slightly-stale .freshness-label { color: var(--stale); }
+.status-bar.stale .freshness-label          { color: var(--stale-hard); }
 
 .status-sep { color: var(--border); }
 
@@ -185,25 +180,10 @@ select:focus { border-color: var(--accent); }
   transform: translateY(-2px);
 }
 
-.rate-card-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
+.rate-card-header { display: flex; align-items: center; gap: 10px; }
 .flag { font-size: 22px; }
-
-.currency-code {
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--text);
-}
-
-.currency-name {
-  font-size: 11px;
-  color: var(--text-muted);
-  white-space: nowrap;
-}
+.currency-code { font-size: 15px; font-weight: 700; color: var(--text); }
+.currency-name { font-size: 11px; color: var(--text-muted); white-space: nowrap; }
 
 .rate-value {
   font-size: 26px;
