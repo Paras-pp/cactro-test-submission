@@ -213,6 +213,12 @@ select:focus { border-color: var(--accent); }
   letter-spacing: -0.5px;
 }
 
+.rate-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
 /* ─── Loading / Error / Refresh states ──────────────────────────────────── */
 .loading-state {
   display: flex;

@@ -44,7 +44,7 @@ function timeAgo(isoString) {
   return `${Math.floor(diff / 3600)}h ago`;
 }
 
-function RateCard({ currency, rate }) {
+function RateCard({ currency, rate, base }) {
   return (
     <div className="rate-card">
       <div className="rate-card-header">
@@ -55,6 +55,7 @@ function RateCard({ currency, rate }) {
         </div>
       </div>
       <div className="rate-value">{formatRate(rate, currency)}</div>
+      <div className="rate-label">1 {base} = {formatRate(rate, currency)} {currency}</div>
     </div>
   );
 }
@@ -185,7 +186,7 @@ export default function App() {
         {rates.length > 0 && (
           <div className="rates-grid">
             {rates.map(([currency, rate]) => (
-              <RateCard key={currency} currency={currency} rate={rate} />
+              <RateCard key={currency} currency={currency} rate={rate} base={base} />
             ))}
           </div>
         )}
