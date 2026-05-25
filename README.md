@@ -3,6 +3,8 @@
 A full-stack currency exchange rate tracker built for the fintech assessment.
 Shows live rates with freshness indicators, graceful fallbacks, and transparent data sourcing.
 
+**Live demo:** https://frontend-five-steel-70.vercel.app
+
 ---
 
 ## Initial Thought Process
